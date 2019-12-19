@@ -1,0 +1,54 @@
+{% load static from staticfiles %}
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+    
+            .imgbox {
+                display: grid;
+                height: 100%;
+            }
+    
+            .center-fit {
+                width: 100%;
+                height: auto;
+                margin: auto;
+                object-fit: cover;
+                justify-content: center;
+            }
+    
+            .flex {
+                display: flex;
+                justify-content: center;
+            }
+            .selector{
+                margin-left: 10px;
+                background-color: antiquewhite;
+                font-family: cursive;
+                font-size: medium;
+            }
+
+            .flex >.button:not(:last-child) {
+                margin-right: 10px;
+            }
+        </style>
+        <h1></h1>
+        <img class = "center-fit" src= "{% static 'amaris_logo.png' %}" alt="Amaris AI Logo">
+    </head>
+    <body style="background-color:beige;">
+        <div class = 'flex'>
+            <button class="selector" onclick="location.href='/single'" type="button">
+                Single Folder Augment</button>
+            <button class="selector" onclick="location.href='/dual'">Dual Folder Augment</button>
+        </div>
+        <div>
+
+        </div>
+
+    </body>    
+</html>

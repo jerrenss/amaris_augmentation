@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <h1>Amaris AI Image Augmentation Function</h1>
+        {% if flag0 %}
+            <script>
+                alert("Error. Please Select Folders Again.")
+            </script>
+        {% endif %}
+        {% if flag1 %}
+            <script>
+                alert("Error. Folders are of differing size.")
+            </script>
+        {% endif %}
+        {% if flag2 %}
+            <script>
+                alert("Error. Make sure your file formats are one of {'png', 'jpg', 'jpeg', 'bmp', 'ppm', 'tif', 'tiff'}")
+            </script>
+        {% endif %}
+        {% if flag3 %}
+            <script>
+                alert("Augmentation Successful!")
+            </script>   
+        {% endif %}
+        <style>
+            .button {
+                background-color: antiquewhite;
+                font-family: cursive;
+                font-size: small;
+            }
+        </style>
+    </head>
+    <body style="background-color:beige;">
+        <div>
+            <h4>Step 1: Select Augmentation Mode:</h4>
+            <form method="POST">
+                {% csrf_token %}
+                {% if modes %}
+                    {% for mode in modes %}
+                        <input type="radio" name="step1" value={{mode}}>{{mode}}
+                    {% endfor %}
+                {% endif %}
+                <br>
+                <h4>Step 2: Select Augmentation Type (Manual ONLY):</h4>
+                {% if types %}
+                {% for type in types %}
+                    <input type="checkbox" name="step2" value={{type}}>{{type}}
+                {% endfor %}
+                {% endif %}
+                <br>
+                <br>
+                <br>
+                <button class='button' type= "submit" location.href='./output'>Upload & Augment</button><br>
+                <br>
+            </form>
+            <br>
+            <button class='button' onclick="location.href='/'">Back To Home</button><br>
+        </div>
+        <div>
+
+        </div>
+
+    </body>    
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <h1>Amaris AI Image Augmentation Function</h1>
+        {% if flag1 %}
+            <script>
+                alert("Error. Please Select Folder Again.")
+            </script>
+        {% endif %}
+        {% if flag2 %}
+            <script>
+                alert("Error. Make sure your file formats are one of {'png', 'jpg', 'jpeg', 'bmp', 'ppm', 'tif', 'tiff'}")
+            </script>
+        {% endif %}
+        {% if flag3 %}
+            <script>
+                alert("Augmentation Successful!")
+            </script>   
+        {% endif %}
+        <style>
+            .button {
+                background-color: antiquewhite;
+                font-family: cursive;
+                font-size: small;
+            }
+            .loader {
+                border: 16px solid #f3f3f3; /* Light grey */
+                border-top: 16px solid blue;
+                border-right: 16px solid green;
+                border-bottom: 16px solid red;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                animation: spin 2s linear infinite;
+            }
+            @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+            }
+        </style>
+    </head>
+    <body style="background-color:beige;">
+        {% if loading %}
+            <div class="loader"></div>
+        {% endif %}
+        <div>
+            <h4>Step 1: Select Augmentation Mode:</h4>
+            <form method="POST">
+                {% csrf_token %}
+                {% if modes %}
+                    {% for mode in modes %}
+                        <input type="radio" name="step1" value={{mode}}>{{mode}}
+                    {% endfor %}
+                {% endif %}
+                <br>
+                <h4>Step 2: Select Augmentation Type (Manual ONLY):</h4>
+                {% if types %}
+                {% for type in types %}
+                    <input type="checkbox" name="step2" value={{type}}>{{type}}
+                {% endfor %}
+                {% endif %}
+                <br>
+                <br>
+                <br>
+                <button class='button' type= "submit" location.href='./output'>Upload & Augment</button><br>
+                <br>
+            </form>
+            <br>
+            <button class='button' onclick="location.href='/'">Back To Home</button><br>
+        </div>
+        <div>
+
+        </div>
+
+    </body>    
+</html>
