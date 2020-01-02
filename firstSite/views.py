@@ -31,13 +31,20 @@ def singleA(request):
         if location == '':
             # showError("Error. Please Select Folder Again.")
             return render(request, 'single_aug.html', {'types': types, 'modes': modes, 'flag1': True})
-        name_list = os.listdir(location)
-        name_list.sort()
+        temp_name_list = os.listdir(location)
+        temp_name_list.sort()
+        name_list = []
+        for name in temp_name_list:
+            if name == '.DS_Store' or (name[0] == '.' and name[1] == '_'):
+                continue
+            else:
+                name_list.append(name)  
         dict1 = {'folder': [location], 'mode': mode, 'options' : manualTypes}
         try:
             numpy4d = start(dict1)
         except Exception as e:
             # showError((str(e)))
+            print(str(e))
             return render(request, 'single_aug.html', {'types': types, 'modes': modes, 'flag2': True})
         save(numpy4d, name_list)
         return render(request, 'single_aug.html', {'types': types, 'modes': modes, 'flag3': True})

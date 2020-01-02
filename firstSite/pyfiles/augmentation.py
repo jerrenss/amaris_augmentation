@@ -40,10 +40,13 @@ def get_images(path, im_height=256, im_width=256):
     # get directory path for unaugmented images
     #imgs_path = os.path.join(path, "images_unaugmented")
     print("Getting images from " + path)
-    imgs = sorted(os.listdir(path))
-    # remove .DS_Store, if it exists in directory
-    if '.DS_Store' in imgs:
-        imgs.remove('.DS_Store')    
+    tempimgs = sorted(os.listdir(path))
+    imgs = []
+    for img in tempimgs:
+        if img == '.DS_Store' or (img[0] == '.' and img[1] == '_'):
+            continue
+        else:
+            imgs.append(img)     
     imgs.sort()
     # arrays are 4d numpy array of shape (N, height, width, channels)
     im_arr = np.zeros((len(imgs), im_height, im_width, 3), dtype=np.uint8)
