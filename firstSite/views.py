@@ -4,7 +4,7 @@ from django.shortcuts import render
 from subprocess import run, PIPE
 from django import forms
 import os
-import easygui
+# import easygui
 import zipfile
 import matplotlib
 matplotlib.use('agg')
