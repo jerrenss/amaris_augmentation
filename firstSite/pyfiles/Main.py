@@ -3,7 +3,7 @@
 #import augmenter.augment_v2 as aug2
 import os
 import sys
-sys.path.append(os.path.basename(sys.argv[0]))
+# sys.path.append(os.path.basename(sys.argv[0]))
 import augmentation as aug
 import json
 from PIL import Image

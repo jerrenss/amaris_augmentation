@@ -6,6 +6,8 @@ from django import forms
 import os
 import easygui
 import zipfile
+import matplotlib
+matplotlib.use('agg')
 from matplotlib.image import imread
 from PIL import Image
 import sys
