@@ -79,7 +79,7 @@ def singleA(request):
             return render(request, 'single_aug.html', {'types': types, 'modes': modes, 'flag2': True})
         save(numpy4d, storagePath2, names_final)
         # Zip Folder for download
-        shutil.make_archive('Augmented', "zip", storagePath2)
+        shutil.make_archive('Augmented', "zip", os.path.join(settings.MEDIA_ROOT, session_key, 'augmented'))
         path_to_file = BASE + '/Augmented.zip' 
         response = HttpResponse(open(path_to_file, 'rb'), content_type='application/zip')
         response['Content-Disposition'] = 'attachment; filename=Augmented.zip'

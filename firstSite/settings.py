@@ -26,7 +26,7 @@ SECRET_KEY = '1zq=3n-5iycecfx+ka6oc8il%8vj8(jl38l_x#@2a3=abocwb#'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['polar-lowlands-75903.herokuapp.com', '.herokuapp.con']
+ALLOWED_HOSTS = ['polar-lowlands-75903.herokuapp.com', '.herokuapp.con','127.0.0.1']
 
 
 # Application definition
