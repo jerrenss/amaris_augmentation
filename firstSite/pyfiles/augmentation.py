@@ -42,12 +42,12 @@ def get_images(path, im_height=256, im_width=256):
     print("Getting images from " + path)
     tempimgs = sorted(os.listdir(path))
     imgs = []
+    supported_formats = ['png', 'jpg', 'jpeg', 'bmp', 'ppm', 'tif', 'tiff']
     for img in tempimgs:
-        if img == '.DS_Store' or (img[0] == '.' and img[1] == '_'):
-            continue
-        else:
-            imgs.append(img)     
-    imgs.sort()
+        parts = img.split('.')
+        if parts[1].lower() in supported_formats:
+            imgs.append(img)    
+    # imgs.sort()
     # arrays are 4d numpy array of shape (N, height, width, channels)
     im_arr = np.zeros((len(imgs), im_height, im_width, 3), dtype=np.uint8)
 

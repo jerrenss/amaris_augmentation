@@ -44,16 +44,19 @@
             <div class="loader"></div>
         {% endif %}
         <div>
-            <h4>Step 1: Select Augmentation Mode:</h4>
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
+                <h4>Step 1: Upload Folder:</h4>
+                <input type='file' id='file' name='uploadfile'  webkitdirectory directory multiple/>
+                <br>
+                <h4>Step 2: Select Augmentation Mode:</h4>
                 {% if modes %}
                     {% for mode in modes %}
                         <input type="radio" name="step1" value={{mode}}>{{mode}}
                     {% endfor %}
                 {% endif %}
                 <br>
-                <h4>Step 2: Select Augmentation Type (Manual ONLY):</h4>
+                <h4>Step 3: Select Augmentation Type (Manual ONLY):</h4>
                 {% if types %}
                 {% for type in types %}
                     <input type="checkbox" name="step2" value={{type}}>{{type}}
@@ -62,7 +65,7 @@
                 <br>
                 <br>
                 <br>
-                <button class='button' type= "submit" location.href='./output'>Upload & Augment</button><br>
+                <button class='button' type= "submit" >Upload & Augment</button><br>
                 <br>
             </form>
             <br>

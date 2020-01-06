@@ -1,10 +1,9 @@
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.core.files.storage import FileSystemStorage
+from django.conf import settings
 #Additional imports
-from subprocess import run, PIPE
-from django import forms
 import os
-# import easygui
 import zipfile
 import matplotlib
 matplotlib.use('agg')
@@ -13,8 +12,10 @@ from PIL import Image
 import sys
 import logging
 from firstSite.pyfiles import augmentation as aug
-import tkinter
-from tkinter import filedialog, messagebox
+import uuid
+import shutil
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 
 def homepage(request):
@@ -22,37 +23,80 @@ def homepage(request):
     return render(request, 'homepage.html')
 
 
+'''
+APPLICATION DETAILS:
+
+REDIRECTS:
+Homepage <-> Single Folder Augmentation
+Homepage <-> Dual Folder Augmentation 
+
+SINGLE FOLDER AUGMENTATION:
+1. Generate a unique session key, store as variable 'ID'
+2. Choose files to upload
+3. Upon button click:
+    a. Upload all files from a client-side selected folder to Path = (MEDIA_ROOT + ID + '/Original')
+    b. Store Path + options chosen in a dictionary.
+4. Peform augmentation using Start function, passing in a dictionary. 
+5. A list of 3D numpy arrays are returned
+6. Save them into Path = (MEDIA_ROOT + ID + '/Augmented')
+
+
+
+'''
 def singleA(request):
     modes = ['Random', 'Manual']
     types = ['Rotate','Blur', 'Colour-Grade', 'Noise', 'Shear', 'Scale', 'Flip-Horizontal','Flip-Vertical']
     if request.method == "POST":
         mode = request.POST.getlist('step1')
         manualTypes = request.POST.getlist('step2')
-        location = read()
-        print(location)
-        if location == '':
-            # showError("Error. Please Select Folder Again.")
-            return render(request, 'single_aug.html', {'types': types, 'modes': modes, 'flag1': True})
-        temp_name_list = os.listdir(location)
-        temp_name_list.sort()
-        name_list = []
-        for name in temp_name_list:
-            if name == '.DS_Store' or (name[0] == '.' and name[1] == '_'):
-                continue
-            else:
-                name_list.append(name)  
-        dict1 = {'folder': [location], 'mode': mode, 'options' : manualTypes}
+        uploaded_file = request.FILES.getlist('uploadfile')
+
+        session_key = str(uuid.uuid1())
+        storagePath = os.path.join(settings.MEDIA_ROOT, session_key, 'original')
+        storagePath2 = os.path.join(settings.MEDIA_ROOT, session_key, 'augmented')
+        os.makedirs(storagePath2)
+
+        fs = FileSystemStorage(location = storagePath)
+        
+        for files in uploaded_file:
+            fs.save(files.name, files)
+
+        # Get file names in directory
+        names = sorted(os.listdir(storagePath))
+        names_final = []
+        supported_formats = ['png', 'jpg', 'jpeg', 'bmp', 'ppm', 'tif', 'tiff']
+        for name in names:
+            parts = name.split('.')
+            if parts[1].lower() in supported_formats:
+                names_final.append(name)
+
+        dict1 = {'folder': [storagePath], 'mode': mode, 'options' : manualTypes}
         try:
+            pass
             numpy4d = start(dict1)
         except Exception as e:
-            # showError((str(e)))
-            print(str(e))
+            # print(str(e))
             return render(request, 'single_aug.html', {'types': types, 'modes': modes, 'flag2': True})
-        save(numpy4d, name_list)
-        return render(request, 'single_aug.html', {'types': types, 'modes': modes, 'flag3': True})
+        save(numpy4d, storagePath2, names_final)
+        # Zip Folder for download
+        shutil.make_archive('Augmented', "zip", storagePath2)
+        path_to_file = BASE + '/Augmented.zip' 
+        response = HttpResponse(open(path_to_file, 'rb'), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename=Augmented.zip'
+        # Remove session folder
+        shutil.rmtree(os.path.join(settings.MEDIA_ROOT, session_key), ignore_errors=True)
+        return response
+        # return render(request, 'single_aug.html', {'types': types, 'modes': modes, 'flag3': True})
     else:
         return render(request, 'single_aug.html', {'types': types, 'modes': modes})
 
+def save(numpy4d, filepath, namelist):
+    # counter = 0
+    for i in range(len(numpy4d)):
+        # name = str(counter)
+        temp = Image.fromarray(numpy4d[i], 'RGB')
+        temp.save(filepath + '\\augmented_' + namelist[i])
+        # counter = counter + 1
 
 def dualA(request):
     modes = ['Random', 'Manual']
@@ -60,106 +104,65 @@ def dualA(request):
     if request.method == "POST":
         mode = request.POST.getlist('step1')
         manualTypes = request.POST.getlist('step2')
-        location = read()
-        location2 = readMask()
-        if location == '' or location2 == '':
-            # showError()
-            return render(request, 'dual_aug.html', {'types': types, 'modes': modes, 'flag0': True})
-        name_list = os.listdir(location)
-        name_list.sort()
-        name_list2 = os.listdir(location2)
-        name_list2.sort()        
-        if name_list != name_list2:
-            return render(request, 'dual_aug.html', {'types': types, 'modes': modes, 'flag1': True})
-        dict1 = {'folder': [location, location2], 'mode': mode, 'options' : manualTypes}
+        uploaded_file = request.FILES.getlist('uploadfile')
+        uploaded_file2 = request.FILES.getlist('uploadfile2')
+
+        session_key = str(uuid.uuid1())
+        storagePath = os.path.join(settings.MEDIA_ROOT, session_key, 'original')
+        storagePathA = os.path.join(settings.MEDIA_ROOT, session_key, 'augmented', 'first')
+        storagePath2 = os.path.join(settings.MEDIA_ROOT, session_key, 'original2')
+        storagePath2A = os.path.join(settings.MEDIA_ROOT, session_key, 'augmented', 'second')
+        os.makedirs(storagePathA)
+        os.makedirs(storagePath2A)
+       
+        fs = FileSystemStorage(location = storagePath)
+        fs2 = FileSystemStorage(location = storagePath2)
+
+        for files in uploaded_file:
+            print(type(files))
+            fs.save(files.name, files)
+
+        for files in uploaded_file2:
+            fs2.save(files.name, files)
+
+        # Get file names in directory
+        names = sorted(os.listdir(storagePath))
+        names_final = []
+        supported_formats = ['png', 'jpg', 'jpeg', 'bmp', 'ppm', 'tif', 'tiff']
+        for name in names:
+            parts = name.split('.')
+            if parts[1].lower() in supported_formats:
+                names_final.append(name)
+
+        names2 = sorted(os.listdir(storagePath2))
+        names_final2 = []
+        for name in names2:
+            parts = name.split('.')
+            if parts[1].lower() in supported_formats:
+                names_final2.append(name)
+        
+
+        dict1 = {'folder': [storagePath, storagePath2], 'mode': mode, 'options' : manualTypes}
         try:
-            numpy4d, numpy4d_m = start(dict1)
+            pass
+            numpy4d, numpy4d2 = start(dict1)
         except Exception as e:
-            return render(request, 'dual_aug.html', {'types': types, 'modes': modes, 'flag2': True})
-        save(numpy4d, name_list)
-        save_m(numpy4d_m, name_list)
-        # showSuccess()
+            # print(str(e))
+            return render(request, 'single_aug.html', {'types': types, 'modes': modes, 'flag2': True})
+        save(numpy4d, storagePathA, names_final)
+        save(numpy4d2, storagePath2A, names_final2)
+        # Zip Folder for download
+        shutil.make_archive('Augmented_Dual', "zip", os.path.join(settings.MEDIA_ROOT, session_key, 'augmented'))
+        path_to_file = BASE + '/Augmented_Dual.zip' 
+        response = HttpResponse(open(path_to_file, 'rb'), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename=Augmented_Dual.zip'
+        # Remove session folder
+        shutil.rmtree(os.path.join(settings.MEDIA_ROOT, session_key), ignore_errors=True)
+        return response
         return render(request, 'dual_aug.html', {'types': types, 'modes': modes, 'flag3': True})
     else:
         return render(request, 'dual_aug.html', {'types': types, 'modes': modes})
 
-
-def start(dict):
-    folder_list = dict["folder"]
-    mode_list = dict["mode"]
-    options_list = dict["options"]
-    if len(folder_list) == 1:
-        # single
-        folder_path = folder_list[0]
-        # check mode random or manual
-        if mode_list[0] == "Random":
-            #do single random
-            return aug.rand_aug_single(folder_path)
-        else:
-            # do single manual
-            return aug.manual_augment_single(folder_path, options_list)
-    else:
-        # multiple
-        pass
-
-def read_from_folder():
-    path = easygui.diropenbox()
-    return path
-
-def save(numpy4d, name_list):
-    root = tkinter.Tk()
-    root.withdraw() #use to hide tkinter window
-    root.call('wm', 'attributes', '.', '-topmost', True)
-    currdir = os.getcwd()
-    filepath = filedialog.askdirectory(parent=root, initialdir=currdir, title='Please Select SAVING Directory for IMAGE')
-    counter = 0
-    for i in range(len(numpy4d)):
-        name = name_list[i]
-        temp = Image.fromarray(numpy4d[i], 'RGB')
-        temp.save(filepath + '\\' + name, 'PNG')
-        counter = counter + 1
-
-def save_m(numpy4d, name_list):
-    root = tkinter.Tk()
-    root.withdraw() #use to hide tkinter window
-    root.call('wm', 'attributes', '.', '-topmost', True)
-    currdir = os.getcwd()
-    filepath = filedialog.askdirectory(parent=root, initialdir=currdir, title='Please Select SAVING Directory for MASKS')
-    counter = 0
-    for i in range(len(numpy4d)):
-        name = name_list[i]
-        temp = Image.fromarray(numpy4d[i], 'RGB')
-        temp.save(filepath + '\\' + name, 'PNG')
-        counter = counter + 1
-
-
-def read():
-    root = tkinter.Tk()
-    root.withdraw() #use to hide tkinter window
-    root.call('wm', 'attributes', '.', '-topmost', True)
-    currdir = os.getcwd()
-    tempdir = filedialog.askdirectory(parent=root, initialdir=currdir, title='Please Select IMAGE Directory')
-    return tempdir
-
-def readMask():
-    root = tkinter.Tk()
-    root.withdraw() #use to hide tkinter window
-    root.call('wm', 'attributes', '.', '-topmost', True)
-    currdir = os.getcwd()
-    tempdir = filedialog.askdirectory(parent=root, initialdir=currdir, title='Please Select MASK Directory')
-    return tempdir
-
-def showSuccess():
-    root = tkinter.Tk()
-    root.withdraw() #use to hide tkinter window
-    root.call('wm', 'attributes', '.', '-topmost', True)
-    messagebox.showinfo("Augmentation", "Succesfully Augmented! :)")
-
-def showError(message):
-    root = tkinter.Tk()
-    root.withdraw() #use to hide tkinter window
-    root.call('wm', 'attributes', '.', '-topmost', True)
-    messagebox.showinfo("Augmentation", message)
 
 def start(dict):
     """dict should contain only the fields in the exact format:
