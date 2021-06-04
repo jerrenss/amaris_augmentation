@@ -6,7 +6,7 @@ chardet==3.0.4
 Click==7.0
 cycler==0.10.0
 decorator==4.4.1
-Django==2.2.6
+Django==2.2.21
 easygui==0.98.1
 Flask==1.1.1
 Flask-SQLAlchemy==2.4.1
